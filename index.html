@@ -1,188 +1,223 @@
-
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Omnitrix Interface</title>
+    <title>Desafio Omnitrix - Efeito Duplicata</title>
     <style>
+        /* --- ESTILOS VISUAIS BASE --- */
         body {
-            background-color: #0b1d0b;
-            color: #00ff00;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            background-color: #08120a;
+            color: #ffffff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
         }
-
-        /* Container do Omnitrix */
-        .omnitrix-container {
+        h1 {
+            color: #00ff1a;
+            text-shadow: 0 0 12px rgba(0, 255, 26, 0.6);
+            margin-bottom: 5px;
+        }
+        .container-principal {
+            max-width: 550px;
+            margin: 20px auto;
             position: relative;
-            width: 300px;
-            height: 300px;
-            border: 15px solid #333;
-            border-radius: 50%;
-            background: radial-gradient(circle, #111 40%, #222 70%);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.5s ease;
         }
-
-        /* O miolo verde/preto do Omnitrix */
-        .display {
-            width: 200px;
-            height: 200px;
-            background-color: #000;
-            border-radius: 50%;
-            border: 8px solid #00ff00;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 20px #00ff00;
+        .quadro-jogo {
+            background: #0f2413;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #00ff1a;
+            box-shadow: 0 0 25px rgba(0, 255, 26, 0.2);
+            margin-bottom: 20px;
         }
-
-        /* Silhueta ou Ícone do Alien */
-        .alien-display {
-            font-size: 24px;
+        .progresso {
             font-weight: bold;
+            color: #00ff1a;
+            font-size: 1.1em;
+            margin-bottom: 15px;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px #00ff00;
-            text-align: center;
-            z-index: 2;
-            animation: pulse 1.5s infinite;
+        }
+        ul {
+            text-align: left;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px 20px 20px 40px;
+            border-radius: 8px;
+            line-height: 1.6;
+            border-left: 4px solid #00ff1a;
+        }
+        .opcoes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
         }
 
-        /* Linhas clássicas do Omnitrix (Formato de Ampulheta) */
-        .hourglass-top, .hourglass-bottom {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-left: 100px solid transparent;
-            border-right: 100px solid transparent;
-            z-index: 1;
-            opacity: 0.3;
-        }
-        .hourglass-top {
-            border-top: 90px solid #00ff00;
-            top: 0;
-        }
-        .hourglass-bottom {
-            border-bottom: 90px solid #00ff00;
-            bottom: 0;
-        }
-
-        /* Estado ativo quando seleciona */
-        .omnitrix-container.active {
-            animation: flash 0.2s ease 3;
-        }
-
-        /* Instruções */
-        .instructions {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #88ff88;
-            text-align: center;
-            line-height: 1.5;
-        }
-
-        .highlight {
-            background-color: #00ff00;
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 3px;
+        /* --- BOTÕES DE RESPOSTA --- */
+        .btn {
+            background: #16361c;
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #00ff1a;
             font-weight: bold;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .btn:hover {
+            background: #00ff1a;
+            color: black;
+            box-shadow: 0 0 15px #00ff1a;
         }
 
-        /* Animações */
-        @keyframes pulse {
-            0% { opacity: 0.7; transform: scale(0.95); }
-            50% { opacity: 1; transform: scale(1.05); }
-            100% { opacity: 0.7; transform: scale(0.95); }
+        /* --- MECÂNICA DE ESTADOS SEM SCRIPT --- */
+        .controlador, .resetador {
+            display: none;
+        }
+        .fase, .clone-topo {
+            display: none;
         }
 
-        @keyframes flash {
-            0% { border-color: #00ff00; box-shadow: 0 0 50px #00ff00; }
-            100% { border-color: #333; box-shadow: 0 0 10px #00ff00; }
+        /* Exibição padrão da primeira fase */
+        #fase1 { display: block; }
+
+        /* Avanço: Acertou a 1ª Questão -> Vai para Fase 2 */
+        #c1:checked ~ .container-principal #fase1 { display: none; }
+        #c1:checked ~ .container-principal #fase2 { display: block; }
+
+        /* Avanço: Acertou a 2ª Questão -> Ativa Fase 3 E mostra a tela duplicada no topo */
+        #c2:checked ~ .container-principal #fase2 { display: none; }
+        #c2:checked ~ .container-principal #fase3 { display: block; }
+        #c2:checked ~ .container-principal #duplicata_eco { 
+            display: block; 
+            animation: surgir 0.5s ease-out;
+        }
+
+        /* Avanço Especial: Acertou a 3ª Questão -> Apaga a duplicata e força a volta para 0 acertos (Fase 1) */
+        #c3:checked ~ .container-principal #duplicata_eco { display: none !important; }
+        #c3:checked ~ .container-principal .fase { display: none !important; }
+        #c3:checked ~ .container-principal #fase1 { display: block !important; }
+
+        /* Penalidade Geral: Se errar qualquer botão de reset, apaga tudo e volta para a Fase 1 */
+        .resetador:checked ~ .container-principal .clone-topo { display: none !important; }
+        .resetador:checked ~ .container-principal .fase { display: none !important; }
+        .resetador:checked ~ .container-principal #fase1 { display: block !important; }
+
+        /* --- ESTILIZAÇÃO DO CLONE SUPERIOR --- */
+        .clone-topo {
+            background: #141f16;
+            border: 2px dashed #00ff1a;
+            opacity: 0.85;
+            transform: scale(0.95);
+        }
+        .alerta-clone {
+            color: #ff3333;
+            font-weight: bold;
+            animation: piscar 1s infinite alternate;
+            letter-spacing: 2px;
+            font-size: 0.9em;
+        }
+
+        /* --- ANIMAÇÕES --- */
+        @keyframes surgir {
+            from { transform: scale(0.5) translateY(-50px); opacity: 0; }
+            to { transform: scale(0.95) translateY(0); opacity: 0.85; }
+        }
+        @keyframes piscar {
+            0% { opacity: 0.3; text-shadow: 0 0 2px #ff0000; }
+            100% { opacity: 1; text-shadow: 0 0 8px #ff0000; }
         }
     </style>
 </head>
 <body>
 
-    <div class="omnitrix-container" id="omnitrix">
-        <div class="display">
-            <div class="hourglass-top"></div>
-            <div class="alien-display" id="alienName">Carregando...</div>
-            <div class="hourglass-bottom"></div>
+    <h1>🛸 BEN 10: SISTEMA OMNITRIX 🛸</h1>
+    <p>Cuidado com as instabilidades do relógio biológico!</p>
+
+    <!-- Os gatilhos precisam ficar no topo do body para controlar os elementos irmãos abaixo deles -->
+    <input type="radio" id="c1" class="controlador" name="progresso_omnitrix">
+    <input type="radio" id="c2" class="controlador" name="progresso_omnitrix">
+    <input type="radio" id="c3" class="controlador" name="progresso_omnitrix">
+    <input type="radio" id="errar" class="resetador" name="progresso_omnitrix">
+
+    <div class="container-principal">
+
+        <!-- TELA CLONADA (SÓ APARECE LOGO ACIMA APÓS O 2º ACERTO) -->
+        <div class="quadro-jogo clone-topo" id="duplicata_eco">
+            <div class="alerta-clone">⚠️ INSTABILIDADE: TELA DUPLICADA DETECTADA ⚠️</div>
+            <div class="progresso">Sequência: 2 / 20</div>
+            <h3>Quem é este Alien do Omnitrix?</h3>
+            <ul>
+                <li>Membro da raça de cristais densos Petrosapien.</li>
+                <li>Pode regenerar partes fraturadas do corpo.</li>
+                <li>Dispara fragmentos pontiagudos contra as ameaças.</li>
+            </ul>
+            <div class="opcoes">
+                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Chama</label>
+                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Besta</label>
+                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Diamante</label>
+                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">XLR8</label>
+            </div>
+        </div>
+
+        <!-- TELA DO JOGO ATIVO -->
+        <div class="quadro-jogo">
+
+            <!-- QUESTÃO 1 (0 Acertos) -->
+            <div class="fase" id="fase1">
+                <div class="progresso">Sequência: 0 / 20</div>
+                <h3>Quem é este Alien do Omnitrix?</h3>
+                <ul>
+                    <li>É da raça Pyronite.</li>
+                    <li>Originário do sol Estrela de Pyros.</li>
+                    <li>Consegue moldar e disparar fogo pelas mãos.</li>
+                </ul>
+                <div class="opcoes">
+                    <label for="c1" class="btn">Chama</label>
+                    <label for="errar" class="btn">Quatro Braços</label>
+                    <label for="errar" class="btn">Diamante</label>
+                    <label for="errar" class="btn">Besta</label>
+                </div>
+            </div>
+
+            <!-- QUESTÃO 2 (1 Acerto) -->
+            <div class="fase" id="fase2">
+                <div class="progresso">Sequência: 1 / 20</div>
+                <h3>Quem é este Alien do Omnitrix?</h3>
+                <ul>
+                    <li>Pertence à raça selvagem Vulpimancer.</li>
+                    <li>Seu rosto não possui olhos visíveis.</li>
+                    <li>Mapeia os inimigos através do olfato e audição apurados.</li>
+                </ul>
+                <div class="opcoes">
+                    <label for="errar" class="btn">Aquático</label>
+                    <label for="c2" class="btn">Besta</label>
+                    <label for="errar" class="btn">Insectoide</label>
+                    <label for="errar" class="btn">XLR8</label>
+                </div>
+            </div>
+
+            <!-- QUESTÃO 3 (2 Acertos - Tela Superior Ligada) -->
+            <div class="fase" id="fase3">
+                <div class="progresso">Sequência: 2 / 20</div>
+                <h3>Quem é este Alien do Omnitrix?</h3>
+                <ul>
+                    <li>Estrutura biológica inteiramente de cristal denso.</li>
+                    <li>Pode regenerar partes fraturadas ou quebradas do corpo.</li>
+                    <li>Dispara espinhos cortantes contra as ameaças.</li>
+                </ul>
+                <div class="opcoes">
+                    <label for="errar" class="btn">Ultra T</label>
+                    <label for="errar" class="btn">Cromático</label>
+                    <!-- Clicar aqui vai disparar o reset programado via CSS e apagar a de cima -->
+                    <label for="c3" class="btn">Diamante</label>
+                    <label for="errar" class="btn">Massa Cinzenta</label>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <div class="instructions">
-        Os aliens estão passando na tela.<br>
-        Pressione a tecla <span class="highlight">ALT</span> para selecionar um aleatoriamente!
-    </div>
-
-    <script>
-        // Lista com os 10 aliens clássicos
-        const aliens = [
-            "Chama", "Quatro Braços", "XLR8", "Ultra T", 
-            "Massa Cinzenta", "Diamante", "Aquático", 
-            "Insectóide", "Fantasmático", "Besta"
-        ];
-
-        let currentIndex = 0;
-        let isSpinning = true;
-        const alienDisplay = document.getElementById('alienName');
-        const omnitrix = document.getElementById('omnitrix');
-
-        // Função que fica rodando os aliens continuamente
-        function cycleAliens() {
-            if (isSpinning) {
-                currentIndex = (currentIndex + 1) % aliens.length;
-                alienDisplay.textContent = aliens[currentIndex];
-            }
-        }
-
-        // Intervalo de troca rápida (simulando o painel girando)
-        let intervalId = setInterval(cycleAliens, 150);
-
-        // Escuta o evento do teclado
-        window.addEventListener('keydown', function(event) {
-            // Verifica se a tecla pressionada foi o "Alt"
-            if (event.key === 'Alt') {
-                event.preventDefault(); // Previne comportamentos padrões do Alt no VS Code
-                
-                // Para o ciclo e escolhe um índice completamente aleatório
-                isSpinning = false;
-                clearInterval(intervalId);
-
-                const randomIndex = Math.floor(Math.random() * aliens.length);
-                alienDisplay.textContent = aliens[randomIndex];
-                
-                // Efeito visual de seleção ativa
-                omnitrix.classList.add('active');
-                alienDisplay.style.color = "#ffffff";
-                alienDisplay.style.fontSize = "28px";
-
-                // Destrava o Omnitrix após 3 segundos para voltar a girar
-                setTimeout(() => {
-                    omnitrix.classList.remove('active');
-                    alienDisplay.style.color = "#00ff00";
-                    alienDisplay.style.fontSize = "24px";
-                    isSpinning = true;
-                    intervalId = setInterval(cycleAliens, 150);
-                }, 3000);
-            }
-        });
-    </script>
 </body>
 </html>
-J
