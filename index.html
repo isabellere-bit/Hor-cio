@@ -2,222 +2,389 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Desafio Omnitrix - Efeito Duplicata</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michael Kaiser - Blue Lock</title>
     <style>
-        /* --- ESTILOS VISUAIS BASE --- */
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #252526;
+            --text-color: #d4d4d4;
+            --accent-blue: #007acc;
+            --border-color: #333;
+            --danger-red: #f44336;
+        }
         body {
-            background-color: #08120a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
         }
-        h1 {
-            color: #00ff1a;
-            text-shadow: 0 0 12px rgba(0, 255, 26, 0.6);
-            margin-bottom: 5px;
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
         }
-        .container-principal {
-            max-width: 550px;
-            margin: 20px auto;
-            position: relative;
+        .header {
+            background-color: #0c0c0d;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-blue);
         }
-        .quadro-jogo {
-            background: #0f2413;
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid #00ff1a;
-            box-shadow: 0 0 25px rgba(0, 255, 26, 0.2);
-            margin-bottom: 20px;
+        .header h1 {
+            margin: 0;
+            color: #569cd6;
         }
-        .progresso {
-            font-weight: bold;
-            color: #00ff1a;
-            font-size: 1.1em;
-            margin-bottom: 15px;
-            text-transform: uppercase;
+        .tabs {
+            display: flex;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.3s;
+            outline: none;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn:hover {
+            background-color: #383838;
+        }
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+            background-color: var(--panel-bg);
+        }
+        .tab-content {
+            display: none;
+            padding: 25px;
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active {
+            display: block;
         }
         ul {
-            text-align: left;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 20px 20px 20px 40px;
-            border-radius: 8px;
-            line-height: 1.6;
-            border-left: 4px solid #00ff1a;
+            padding-left: 20px;
         }
-        .opcoes {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 25px;
+        li {
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
-
-        /* --- BOTÕES DE RESPOSTA --- */
-        .btn {
-            background: #16361c;
-            color: white;
-            padding: 14px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid #00ff1a;
+        .highlight-red {
+            color: #f48771;
             font-weight: bold;
-            transition: all 0.2s ease;
-            user-select: none;
         }
-        .btn:hover {
-            background: #00ff1a;
-            color: black;
-            box-shadow: 0 0 15px #00ff1a;
-        }
-
-        /* --- MECÂNICA DE ESTADOS SEM SCRIPT --- */
-        .controlador, .resetador {
-            display: none;
-        }
-        .fase, .clone-topo {
-            display: none;
-        }
-
-        /* Exibição padrão da primeira fase */
-        #fase1 { display: block; }
-
-        /* Avanço: Acertou a 1ª Questão -> Vai para Fase 2 */
-        #c1:checked ~ .container-principal #fase1 { display: none; }
-        #c1:checked ~ .container-principal #fase2 { display: block; }
-
-        /* Avanço: Acertou a 2ª Questão -> Ativa Fase 3 E mostra a tela duplicada no topo */
-        #c2:checked ~ .container-principal #fase2 { display: none; }
-        #c2:checked ~ .container-principal #fase3 { display: block; }
-        #c2:checked ~ .container-principal #duplicata_eco { 
-            display: block; 
-            animation: surgir 0.5s ease-out;
-        }
-
-        /* Avanço Especial: Acertou a 3ª Questão -> Apaga a duplicata e força a volta para 0 acertos (Fase 1) */
-        #c3:checked ~ .container-principal #duplicata_eco { display: none !important; }
-        #c3:checked ~ .container-principal .fase { display: none !important; }
-        #c3:checked ~ .container-principal #fase1 { display: block !important; }
-
-        /* Penalidade Geral: Se errar qualquer botão de reset, apaga tudo e volta para a Fase 1 */
-        .resetador:checked ~ .container-principal .clone-topo { display: none !important; }
-        .resetador:checked ~ .container-principal .fase { display: none !important; }
-        .resetador:checked ~ .container-principal #fase1 { display: block !important; }
-
-        /* --- ESTILIZAÇÃO DO CLONE SUPERIOR --- */
-        .clone-topo {
-            background: #141f16;
-            border: 2px dashed #00ff1a;
-            opacity: 0.85;
-            transform: scale(0.95);
-        }
-        .alerta-clone {
-            color: #ff3333;
+        .highlight-blue {
+            color: #4fc1ff;
             font-weight: bold;
-            animation: piscar 1s infinite alternate;
-            letter-spacing: 2px;
-            font-size: 0.9em;
         }
-
-        /* --- ANIMAÇÕES --- */
-        @keyframes surgir {
-            from { transform: scale(0.5) translateY(-50px); opacity: 0; }
-            to { transform: scale(0.95) translateY(0); opacity: 0.85; }
-        }
-        @keyframes piscar {
-            0% { opacity: 0.3; text-shadow: 0 0 2px #ff0000; }
-            100% { opacity: 1; text-shadow: 0 0 8px #ff0000; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
 
-    <h1>🛸 BEN 10: SISTEMA OMNITRIX 🛸</h1>
-    <p>Cuidado com as instabilidades do relógio biológico!</p>
-
-    <!-- Os gatilhos precisam ficar no topo do body para controlar os elementos irmãos abaixo deles -->
-    <input type="radio" id="c1" class="controlador" name="progresso_omnitrix">
-    <input type="radio" id="c2" class="controlador" name="progresso_omnitrix">
-    <input type="radio" id="c3" class="controlador" name="progresso_omnitrix">
-    <input type="radio" id="errar" class="resetador" name="progresso_omnitrix">
-
-    <div class="container-principal">
-
-        <!-- TELA CLONADA (SÓ APARECE LOGO ACIMA APÓS O 2º ACERTO) -->
-        <div class="quadro-jogo clone-topo" id="duplicata_eco">
-            <div class="alerta-clone">⚠️ INSTABILIDADE: TELA DUPLICADA DETECTADA ⚠️</div>
-            <div class="progresso">Sequência: 2 / 20</div>
-            <h3>Quem é este Alien do Omnitrix?</h3>
-            <ul>
-                <li>Membro da raça de cristais densos Petrosapien.</li>
-                <li>Pode regenerar partes fraturadas do corpo.</li>
-                <li>Dispara fragmentos pontiagudos contra as ameaças.</li>
-            </ul>
-            <div class="opcoes">
-                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Chama</label>
-                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Besta</label>
-                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">Diamante</label>
-                <label class="btn" style="opacity: 0.5; cursor: not-allowed;">XLR8</label>
-            </div>
-        </div>
-
-        <!-- TELA DO JOGO ATIVO -->
-        <div class="quadro-jogo">
-
-            <!-- QUESTÃO 1 (0 Acertos) -->
-            <div class="fase" id="fase1">
-                <div class="progresso">Sequência: 0 / 20</div>
-                <h3>Quem é este Alien do Omnitrix?</h3>
-                <ul>
-                    <li>É da raça Pyronite.</li>
-                    <li>Originário do sol Estrela de Pyros.</li>
-                    <li>Consegue moldar e disparar fogo pelas mãos.</li>
-                </ul>
-                <div class="opcoes">
-                    <label for="c1" class="btn">Chama</label>
-                    <label for="errar" class="btn">Quatro Braços</label>
-                    <label for="errar" class="btn">Diamante</label>
-                    <label for="errar" class="btn">Besta</label>
-                </div>
-            </div>
-
-            <!-- QUESTÃO 2 (1 Acerto) -->
-            <div class="fase" id="fase2">
-                <div class="progresso">Sequência: 1 / 20</div>
-                <h3>Quem é este Alien do Omnitrix?</h3>
-                <ul>
-                    <li>Pertence à raça selvagem Vulpimancer.</li>
-                    <li>Seu rosto não possui olhos visíveis.</li>
-                    <li>Mapeia os inimigos através do olfato e audição apurados.</li>
-                </ul>
-                <div class="opcoes">
-                    <label for="errar" class="btn">Aquático</label>
-                    <label for="c2" class="btn">Besta</label>
-                    <label for="errar" class="btn">Insectoide</label>
-                    <label for="errar" class="btn">XLR8</label>
-                </div>
-            </div>
-
-            <!-- QUESTÃO 3 (2 Acertos - Tela Superior Ligada) -->
-            <div class="fase" id="fase3">
-                <div class="progresso">Sequência: 2 / 20</div>
-                <h3>Quem é este Alien do Omnitrix?</h3>
-                <ul>
-                    <li>Estrutura biológica inteiramente de cristal denso.</li>
-                    <li>Pode regenerar partes fraturadas ou quebradas do corpo.</li>
-                    <li>Dispara espinhos cortantes contra as ameaças.</li>
-                </ul>
-                <div class="opcoes">
-                    <label for="errar" class="btn">Ultra T</label>
-                    <label for="errar" class="btn">Cromático</label>
-                    <!-- Clicar aqui vai disparar o reset programado via CSS e apagar a de cima -->
-                    <label for="c3" class="btn">Diamante</label>
-                    <label for="errar" class="btn">Massa Cinzenta</label>
-                </div>
-            </div>
-
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>Michael Kaiser</h1>
+        <p>Bastard München | New Generation World XI</p>
     </div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'Perfil')">Perfil & Dados</button>
+        <button class="tab-btn" onclick="openTab(event, 'Aparencia')">Aparência & Estilo</button>
+        <button class="tab-btn" onclick="openTab(event, 'Carreira')">Início no Futebol</button>
+        <button class="tab-btn" onclick="openTab(event, 'TempoLivre')">Tempo Livre & Hobbies</button>
+        <button class="tab-btn" onclick="openTab(event, 'Familia')">Relação Familiar</button>
+        <button class="tab-btn" onclick="openTab(event, 'Rivalidade')">Quem Ele Odeia</button>
+        <button class="tab-btn" onclick="openTab(event, 'Vida')">Mais Detalhes da Vida</button>
+    </div>
+
+    <!-- ABA 1: PERFIL -->
+    <div id="Perfil" class="tab-content active">
+        <h2>Dados Básicos</h2>
+        <ul>
+            <li><strong>Idade:</strong> 19 anos</li>
+            <li><strong>Data de Nascimento:</strong> 25 de Dezembro (Signo: Capricórnio)</li>
+            <li><strong>Altura:</strong> 1,86 m</li>
+            <li><strong>Cidade Natal:</strong> Berlim, Alemanha</li>
+            <li><strong>Posição:</strong> Atacante (Forward)</li>
+        </ul>
+    </div>
+
+    <!-- ABA 2: APARÊNCIA & ESTILO -->
+    <div id="Aparencia" class="tab-content">
+        <h2>Aparência e Elementos Visuais</h2>
+        <ul>
+            <li><strong>Cabelo Marcante:</strong> Possui cabelo loiro com pontas pintadas em um tom de <span class="highlight-blue">azul metálico</span>, além de uma mecha que cai entre seus olhos.</li>
+            <li><strong>Olhos:</strong> Seus olhos são azuis intensos, transmitindo um olhar afiado e intimidador tanto dentro quanto fora de campo.</li>
+            <li><strong>A Tatuagem da Rosa Azul:</strong> No lado esquerdo do pescoço, estendendo-se pelo braço, Kaiser tem uma grande tatuagem de uma rosa azul cercada por correntes e espinhos. No mangá, ele explica que a rosa azul simboliza "tornar o impossível em realidade", já que essa flor não existia originalmente na natureza.</li>
+            <li><strong>Expressões:</strong> Frequentemente exibe um sorriso de escárnio ou tédio, mas assume feições assustadoras e maníacas quando seu orgulho é ameaçado no campo.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 3: CARREIRA -->
+    <div id="Carreira" class="tab-content">
+        <h2>Trajetória no Esporte</h2>
+        <ul>
+            <li><strong>Quando começou a jogar:</strong> Começou relativamente tarde, aos 15 anos de idade, após ser descoberto pelo agente Ray Dark na prisão juvenil.</li>
+            <li><strong>Time Atual:</strong> Bastard München (Liga Neo Egoísta).</li>
+            <li><strong>Arma Principal:</strong> Kaiser Impact (o chute mais rápido do mundo) e Metavision.</li>
+            <li><strong>Origem do Estilo:</strong> Moldado por uma infância difícil e abusiva, transformando o rancor e a malícia em sua força motriz no campo.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 4: TEMPO LIVRE -->
+    <div id="TempoLivre" class="tab-content">
+        <h2>O que ele faz no Tempo Livre?</h2>
+        <ul>
+            <li><strong>Hobby Principal:</strong> Ler livros sobre <span class="highlight-red">Psicologia</span> e <span class="highlight-red">Filosofia</span>. Ele é fascinado em entender os princípios e gatilhos que guiam o comportamento humano.</li>
+            <li><strong>Rotina Matinal Estranha:</strong> Kaiser costuma ficar nu em frente ao espelho conversando consigo mesmo para fixar a mentalidade de que "nada é impossível", abrindo um sorriso egocêntrico logo em seguida.</li>
+            <li><strong>Música Favorita:</strong> Sua canção predileta é <em>"Desperado"</em> da banda americana Eagles.</li>
+            <li><strong>Animal Favorito:</strong> Gosta muito de cães de rua/vira-latas.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 5: FAMÍLIA -->
+    <div id="Familia" class="tab-content">
+        <h2>Contato com o Pai (Frederick Kaiser)</h2>
+        <ul>
+            <li><strong>Mantém Contato?</strong> <span class="highlight-red">Não. Contato zero.</span> Seu pai, Frederick Kaiser, era um homem abusivo e violento que o agredia constantemente na infância após o divórcio da mãe.</li>
+            <li><strong>O Trauma:</strong> O pai o trancava e o fazia se sentir um "pedaço de lixo", o que gerou a profunda falta de empatia de Kaiser por outras pessoas. Ele enxerga os humanos como ferramentas devido a esse tratamento.</li>
+            <li><strong>O Rompimento:</strong> A relação foi completamente destruída quando Kaiser usou o futebol para se rebelar e sair da miséria, cortando qualquer laço com o genitor para sempre.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 6: RIVALIDADE / ÓDIO -->
+    <div id="Rivalidade" class="tab-content">
+        <h2>Quem Ele Mais Odeia?</h2>
+        <ul>
+            <li><strong>Alvo do Ódio:</strong> <span class="highlight-red">Isagi Yoichi</span>. No início da Liga Neo Egoísta, Kaiser via Isagi apenas como um "palhaço" para ser esmagado e inflar seu próprio valor de mercado.</li>
+            <li><strong>Motivo do Rancor:</strong> Isagi começou a evoluir tão rápido que passou a roubar o protagonismo de Kaiser dentro do campo, devorando suas jogadas e ferindo seu orgulho de "Imperador".</li>
+            <li><strong>Evolução do Ódio:</strong> Kaiser desenvolveu uma obsessão doentia em destruir a carreira de Isagi. Apesar do ódio, ele secretamente reconhece e respeita a mentalidade e o intelecto de jogo do rival japonês.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 7: MAIS DETALHES DA VIDA -->
+    <div id="Vida" class="tab-content">
+        <h2>Outros Fatos Ocultos da sua Biografia</h2>
+        <ul>
+            <li><strong>Passado Criminal:</strong> Antes do futebol, Kaiser chegou a ser preso em uma instituição juvenil na Alemanha após cometer roubos sob ordens e pressão de seu pai abusivo. Foi lá que ele foi descoberto.</li>
+            <li><strong>Relação com Alexis Ness:</strong> Ness é o único "amigo" e servo leal de Kaiser. No entanto, Kaiser mantém uma dinâmica tóxica com ele, usando-o como uma ferramenta tática no campo e agindo com extrema frieza se Ness falhar.</li>
+            <li><strong>Popularidade no Dia dos Namorados:</strong> De acordo com os dados oficiais do mangá (Egoist Bible), Kaiser uma vez recebeu mais de 800 chocolates de fãs em seu vestiário.</li>
+            <li><strong>Se ficasse milionário:</strong> Revelou que, se ganhasse 100 milhões de ienes extras, ele compraria um gigantesco jardim de rosas — sua flor predileta.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function openTab(evt, tabName) {
+        const contents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < contents.length; i++) {
+            contents[i].classList.remove("active");
+        }
+        const btns = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < btns.length; i++) {
+            btns[i].classList.remove("active");
+        }
+        document.getElementById(tabName).classList.add("active");
+        evt.currentTarget.classList.add("active");
+    }
+</script>
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michael Kaiser - Blue Lock</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #252526;
+            --text-color: #d4d4d4;
+            --accent-blue: #007acc;
+            --border-color: #333;
+            --danger-red: #f44336;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .header {
+            background-color: #0c0c0d;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+        .header h1 {
+            margin: 0;
+            color: #569cd6;
+        }
+        .tabs {
+            display: flex;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.3s;
+            outline: none;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn:hover {
+            background-color: #383838;
+        }
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+            background-color: var(--panel-bg);
+        }
+        .tab-content {
+            display: none;
+            padding: 25px;
+            animation: fadeIn 0.5s;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        .highlight-red {
+            color: #f48771;
+            font-weight: bold;
+        }
+        .highlight-blue {
+            color: #4fc1ff;
+            font-weight: bold;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Michael Kaiser</h1>
+        <p>Bastard München | New Generation World XI</p>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'Perfil')">Perfil & Dados</button>
+        <button class="tab-btn" onclick="openTab(event, 'Aparencia')">Aparência & Estilo</button>
+        <button class="tab-btn" onclick="openTab(event, 'Carreira')">Início no Futebol & Atributos</button>
+        <button class="tab-btn" onclick="openTab(event, 'TempoLivre')">Tempo Livre & Hobbies</button>
+        <button class="tab-btn" onclick="openTab(event, 'Familia')">Relação Familiar</button>
+        <button class="tab-btn" onclick="openTab(event, 'Rivalidade')">Quem Ele Odeia</button>
+        <button class="tab-btn" onclick="openTab(event, 'Vida')">Mais Detalhes da Vida</button>
+    </div>
+
+    <!-- ABA 1: PERFIL -->
+    <div id="Perfil" class="tab-content active">
+        <h2>Dados Básicos</h2>
+        <ul>
+            <li><strong>Idade:</strong> 19 anos</li>
+            <li><strong>Data de Nascimento:</strong> 25 de Dezembro (Signo: Capricórnio)</li>
+            <li><strong>Altura:</strong> 1,86 m</li>
+            <li><strong>Cidade Natal:</strong> Berlim, Alemanha</li>
+            <li><strong>Posição:</strong> Atacante (Forward)</li>
+        </ul>
+    </div>
+
+    <!-- ABA 2: APARÊNCIA & ESTILO -->
+    <div id="Aparencia" class="tab-content">
+        <h2>Aparência e Elementos Visuais</h2>
+        <ul>
+            <li><strong>Cabelo Marcante:</strong> Possui cabelo loiro com pontas pintadas em um tom de <span class="highlight-blue">azul metálico</span>, além de uma mecha que cai entre seus olhos.</li>
+            <li><strong>Olhos:</strong> Seus olhos são azuis intensos, transmitindo um olhar afiado e intimidador tanto dentro quanto fora de campo.</li>
+            <li><strong>A Tatuagem da Rosa Azul:</strong> No lado esquerdo do pescoço, estendendo-se pelo braço, Kaiser tem uma grande tatuagem de uma rosa azul cercada por correntes e espinhos. No mangá, ele explica que a rosa azul simboliza "tornar o impossível em realidade", já que essa flor não existia originalmente na natureza.</li>
+            <li><strong>Expressões:</strong> Frequentemente exibe um sorriso de escárnio ou tédio, mas assume feições assustadoras e maníacas quando seu orgulho é ameaçado no campo.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 3: CARREIRA & ATRIBUTOS DETALHADOS -->
+    <div id="Carreira" class="tab-content">
+        <h2>Trajetória no Esporte & Arsenal Absoluto</h2>
+        <ul>
+            <li><strong>Quando começou a jogar:</strong> Começou relativamente tarde, aos 15 anos de idade, após ser descoberto pelo agente Ray Dark na prisão juvenil.</li>
+            <li><strong>Time Atual:</strong> Bastard München (Liga Neo Egoísta).</li>
+            <li><strong>A Força e Velocidade de seu Chute:</strong> <span class="highlight-blue">Nota de Chute: 99 (Rank S)</span>. Sua arma assinatura é o <strong>Kaiser Impact</strong>. O movimento de perna (swing) de Kaiser é considerado o <strong>mais rápido do mundo</strong>, superando até mesmo o do melhor jogador do planeta, Noel Noa. Essa aceleração surreal faz com que a bola ganhe uma energia de impacto devastadora e uma trajetória retilínea imparável, impossibilitando qualquer tempo de reação dos goleiros. Posteriormente, ele aprimorou a técnica adicionando o efeito magnético (Kaiser Impact Magnus) para curvar a bola.</li>
+            <li><strong>Nível de QI de Futebol:</strong> <span class="highlight-blue">QI Tático de Nível Genial Global</span>. Kaiser opera em uma dimensão analítica avançada utilizando a <strong>Metavision</strong> (Metavisão), o que lhe confere percepção espacial em tempo real de todo o campo, prevendo o movimento dos jogadores segundos antes de acontecerem. Combinado a isso, ele possui o <strong>Predator Eye</strong> (Olho do Depredador), um QI focado puramente em varrer as defesas para achar a menor brecha ou ponto cego do goleiro para disparar. Ele manipula o ritmo do jogo como um verdadeiro imperador de xadrez.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 4: TEMPO LIVRE -->
+    <div id="TempoLivre" class="tab-content">
+        <h2>O que ele faz no Tempo Livre?</h2>
+        <ul>
+            <li><strong>Hobby Principal:</strong> Ler livros sobre <span class="highlight-red">Psicologia</span> e <span class="highlight-red">Filosofia</span>. Ele é fascinado em entender os princípios e gatilhos que guiam o comportamento humano.</li>
+            <li><strong>Rotina Matinal Estranha:</strong> Kaiser costuma ficar nu em frente ao espelho conversando consigo mesmo para fixar a mentalidade de que "nada é impossível", abrindo um sorriso egocêntrico logo em seguida.</li>
+            <li><strong>Música Favorita:</strong> Sua canção predileta é <em>"Desperado"</em> da banda americana Eagles.</li>
+            <li><strong>Animal Favorito:</strong> Gosta muito de cães de rua/vira-latas.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 5: FAMÍLIA -->
+    <div id="Familia" class="tab-content">
+        <h2>Contato com o Pai (Frederick Kaiser)</h2>
+        <ul>
+            <li><strong>Mantém Contato?</strong> <span class="highlight-red">Não. Contato zero.</span> Seu pai, Frederick Kaiser, era um homem abusivo e violento que o agredia constantemente na infância após o divórcio da mãe.</li>
+            <li><strong>O Trauma:</strong> O pai o trancava e o fazia se sentir um "pedaço de lixo", o que gerou a profunda falta de empatia de Kaiser por outras pessoas. Ele enxerga os humanos como ferramentas devido a esse tratamento.</li>
+            <li><strong>O Rompimento:</strong> A relação foi completamente destruída quando Kaiser usou o futebol para se rebelar e sair da miséria, cortando qualquer laço com o genitor para sempre.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 6: RIVALIDADE / ÓDIO -->
+    <div id="Rivalidade" class="tab-content">
+        <h2>Quem Ele Mais Odeia?</h2>
+        <ul>
+            <li><strong>Alvo do Ódio:</strong> <span class="highlight-red">Isagi Yoichi</span>. No início da Liga Neo Egoísta, Kaiser via Isagi apenas como um "palhaço" para ser esmagado e inflar seu próprio valor de mercado.</li>
+            <li><strong>Motivo do Rancor:</strong> Isagi começou a evoluir tão rápido que passou a roubar o protagonismo de Kaiser dentro do campo, devorando suas jogadas e ferindo seu orgulho de "Imperador".</li>
+            <li><strong>Evolução do Ódio:</strong> Kaiser desenvolveu uma obsessão doentia em destruir a carreira de Isagi. Apesar do ódio, ele secretamente reconhece e respeita a mentalidade e o intelecto de jogo do rival japonês.</li>
+        </ul>
+    </div>
+
+    <!-- ABA 7: MAIS DETALHES DA VIDA -->
+    <div id="Vida" class="tab-content">
+        <h2>Outros Fatos Ocultos da sua Biografia</h2>
+        <ul>
+            <li><strong>Passado Criminal:</strong> Antes do futebol, Kaiser chegou a ser preso em uma instituição juvenil na Alemanha após cometer roubos sob ordens e pressão de seu pai abusivo. Foi lá que ele foi descoberto.</li>
